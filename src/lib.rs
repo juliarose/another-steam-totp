@@ -31,13 +31,13 @@ pub enum Error {
 
 /// The tag used for [`generate_confirmation_key`].
 pub enum Tag {
-    /// Load the confirmations page.
+    /// To load the confirmations page.
     Conf,
-    /// Load details about a trade.
+    /// To load details about a trade.
     Details,
-    /// Confirm a confirmation.
+    /// To confirm a confirmation.
     Allow,
-    /// Cancel a confirmation.
+    /// To cancel a confirmation.
     Cancel,
 }
 
