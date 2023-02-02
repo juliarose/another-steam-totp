@@ -1,0 +1,19 @@
+[package]
+name = "another-steam-totp"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64 = "0.13.0"
+sha-1 = "0.10.0"
+byteorder = "1"
+hmac = "^0.12"
+thiserror = "1.0"
+reqwest = { version = "^0.11", optional = true }
+serde = { version = "1.0", features = ["derive", "rc"], optional = true }
+serde_json = { version = "1.0", features = ["raw_value"], optional = true }
+
+[features]
+reqwest = ["dep:reqwest", "dep:serde", "dep:serde_json"]
