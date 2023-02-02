@@ -62,9 +62,9 @@ impl fmt::Display for Tag {
 /// ```
 /// use another_steam_totp::generate_auth_code;
 /// 
-/// let secret = String::from("000000000000000000000000000=");
+/// let shared_secret = String::from("000000000000000000000000000=");
 /// let time_offset = None;
-/// let code = generate_auth_code(secret, time_offset).unwrap();
+/// let code = generate_auth_code(shared_secret, time_offset).unwrap();
 /// 
 /// assert_eq!(code.len(), 5);
 /// ```
@@ -81,6 +81,15 @@ pub fn generate_auth_code(
 /// 
 /// `time_offset` is the number of seconds in which your system is **behind** Steam's servers. If 
 /// present, this will add the offset onto your system's current time. Otherwise no offset is used.
+/// 
+/// # Examples
+///
+/// ```
+/// use another_steam_totp::generate_confirmation_key;
+/// 
+/// let identity_secret = String::from("000000000000000000000000000=");
+/// let code = generate_confirmation_key(identity_secret, Tag::Allow, None).unwrap();
+/// ```
 pub fn generate_confirmation_key(
     identity_secret: String,
     tag: Tag,
@@ -242,8 +251,9 @@ mod tests {
     
     #[test]
     fn generates_confirmation_hash_for_time() {
+        let identity_secret = "000000000000000000000000000=".into();
         let hash = generate_confirmation_key_for_time(
-            "000000000000000000000000000=".into(),
+            identity_secret,
             Tag::Allow,
             1634603498 as i64,
         ).unwrap();
@@ -253,9 +263,9 @@ mod tests {
     
     #[test]
     fn generating_a_code_works() {
-        let secret = String::from("000000000000000000000000000=");
+        let shared_secret = String::from("000000000000000000000000000=");
         let time: i64 = 1634603498;
-        let code = generate_auth_code_for_time(secret, time).unwrap();
+        let code = generate_auth_code_for_time(shared_secret, time).unwrap();
         
         assert_eq!(code, "2C5H2");
     }
