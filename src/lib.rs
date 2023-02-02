@@ -4,7 +4,6 @@ use std::{io::Cursor, time::{SystemTime, SystemTimeError, UNIX_EPOCH}, fmt};
 use hmac::{Hmac, Mac};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use sha1::{Sha1, Digest};
-use base64;
 
 const CHARS: &[char] = &['2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 
 'N', 'P', 'Q', 'R', 'T', 'V', 'W', 'X', 'Y'];
@@ -14,10 +13,10 @@ type HmacSha1 = Hmac<Sha1>;
 // Any number of errors that can occur during code generations.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    /// The secret could be decoded encoded to base64 and is therefor invalid.
-    #[error("Error decoding from base64 {}", .0)]
+    /// The secret could not be encoded to base64 and is therefore invalid.
+    #[error("Error decoding secret from base64 {}", .0)]
     InvalidSecret(#[from] base64::DecodeError),
-    /// The inputted data to the HMAC is empty.
+    /// The secret given is empty..
     #[error("The secret is empty")]
     EmptySecret,
     /// An error occurred when reading your computer's system time.
@@ -25,7 +24,7 @@ pub enum Error {
     SystemTime(#[from] SystemTimeError),
     /// An error occurred when reading/writing bytes from/to a [`Cursor`]. This should reasonably 
     /// never happen, but if it does it will be returned here.
-    #[error("{}", .0)]
+    #[error("IO error: {}", .0)]
     IO(#[from] std::io::Error),
 }
 
