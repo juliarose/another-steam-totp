@@ -1,6 +1,6 @@
 //! Anotha one.
 
-use std::{io::Cursor, time::{SystemTime, SystemTimeError, UNIX_EPOCH}};
+use std::{io::Cursor, time::{SystemTime, SystemTimeError, UNIX_EPOCH}, fmt};
 use hmac::{Hmac, Mac};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use sha1::{Sha1, Digest};
@@ -27,6 +27,29 @@ pub enum Error {
     /// never happen, but if it does it will be returned here.
     #[error("{}", .0)]
     IO(#[from] std::io::Error),
+}
+
+/// The tag used for [`generate_confirmation_key`].
+pub enum Tag {
+    /// Load the confirmations page.
+    Conf,
+    /// Load details about a trade.
+    Details,
+    /// Confirm a confirmation.
+    Allow,
+    /// Cancel a confirmation.
+    Cancel,
+}
+
+impl fmt::Display for Tag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Conf => write!(f, "conf"),
+            Self::Details => write!(f, "details"),
+            Self::Allow => write!(f, "allow"),
+            Self::Cancel => write!(f, "cancel"),
+        }
+    }
 }
 
 /// Generates the 5-character authentication code to login to Steam using your `shared_secret`.
@@ -60,12 +83,12 @@ pub fn generate_auth_code(
 /// present, this will add the offset onto your system's current time. Otherwise no offset is used.
 pub fn generate_confirmation_key(
     identity_secret: String,
-    tag: String,
+    tag: Tag,
     time_offset: Option<i64>,
 ) -> Result<String, Error> {
     let timestamp = current_timestamp()? as i64 + time_offset.unwrap_or(0);
     
-    generate_confirmation_key_for_time(identity_secret, timestamp, tag)
+    generate_confirmation_key_for_time(identity_secret, tag, timestamp)
 }
 
 /// Gets the device ID for a given `steamid`.
@@ -142,11 +165,12 @@ fn generate_auth_code_for_time(
 /// Generates a confirmation key for the given time.
 fn generate_confirmation_key_for_time(
     identity_secret: String,
+    tag: Tag,
     timestamp: i64,
-    tag: String,
 ) -> Result<String, Error> {
     let timestamp_bytes = timestamp.to_be_bytes();
-    let tag_bytes = tag.as_bytes();
+    let tag_string = tag.to_string();
+    let tag_bytes = tag_string.as_bytes();
     let array = [&timestamp_bytes, tag_bytes].concat();
     let hmac = get_hmac_msg(identity_secret, &array)?;
     let code_bytes = hmac.finalize().into_bytes();
@@ -220,8 +244,8 @@ mod tests {
     fn generates_confirmation_hash_for_time() {
         let hash = generate_confirmation_key_for_time(
             "000000000000000000000000000=".into(),
+            Tag::Allow,
             1634603498 as i64,
-            "allow".into(),
         ).unwrap();
         
         assert_eq!(hash, "9/OyNC3rk7VNsMFklzayOuznImU=");
