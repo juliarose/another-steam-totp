@@ -205,12 +205,9 @@ fn get_hmac_msg(
 #[cfg(feature = "reqwest")]
 #[derive(thiserror::Error, Debug)]
 pub enum RequestError {
-    /// A request error.
+    /// A request error occured (either network or deserialization).
     #[error("Reqwest error: {}", .0)]
     Reqwest(#[from] reqwest::Error),
-    /// An error parsing the response.
-    #[error("Error parsing response from Steam: {}", .0)]
-    Serde(#[from] serde_json::error::Error),
     /// An error occurred when reading your computer's system time.
     #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
     SystemTime(#[from] SystemTimeError),
@@ -219,14 +216,25 @@ pub enum RequestError {
 /// Gets how many seconds we are **behind** Steam's servers.
 #[cfg(feature = "reqwest")]
 pub async fn get_steam_server_time_offset() -> Result<i64, RequestError> {
-    use serde::Deserialize;
+    use std::str::FromStr;
+    use serde::{de, Deserialize, Deserializer};
     
-    #[derive(Deserialize, Debug)]
+    fn from_string<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: FromStr,
+        T::Err: fmt::Display,
+        D: Deserializer<'de>,
+    {
+        String::deserialize(deserializer)?.parse().map_err(de::Error::custom)
+    }
+    
+    #[derive(Deserialize)]
     struct ResponseBody {
+        #[serde(deserialize_with = "from_string")]
         server_time: u64,
     }
     
-    #[derive(Deserialize, Debug)]
+    #[derive(Deserialize)]
     struct Response {
         response: ResponseBody,
     }
@@ -236,11 +244,9 @@ pub async fn get_steam_server_time_offset() -> Result<i64, RequestError> {
         .header("content-length", 0)
         .send()
         .await?;
-    let bytes = response.bytes().await?;
-    let body: Response = serde_json::from_slice(&bytes)?;
-    let server_time = body.response.server_time;
+    let json = response.json::<Response>().await?;
     let current_timestamp = current_timestamp()?;
-    let offset = server_time as i64 - current_timestamp as i64;
+    let offset = json.response.server_time as i64 - current_timestamp as i64;
     
     Ok(offset)
 }
