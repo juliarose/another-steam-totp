@@ -250,7 +250,7 @@ mod tests {
     use super::*;
     
     #[test]
-    fn generates_confirmation_hash_for_time() {
+    fn generates_confirmation_key_for_time() {
         let identity_secret = "000000000000000000000000000=".into();
         let hash = generate_confirmation_key_for_time(
             identity_secret,
