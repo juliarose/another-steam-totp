@@ -2,7 +2,7 @@
 
 use std::{io::Cursor, time::{SystemTime, SystemTimeError, UNIX_EPOCH}, fmt};
 use hmac::{Hmac, Mac};
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, ReadBytesExt};
 use sha1::{Sha1, Digest};
 
 const CHARS: &[char] = &['2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 
@@ -143,12 +143,8 @@ fn generate_auth_code_for_time(
     timestamp: i64,
 ) -> Result<String, Error> {
     let mut full_code = {
-        let mut buf = Cursor::new(vec![0u8; 8]);
-        
-        buf.write_i64::<BigEndian>(timestamp / 30)?;
-        
-        let bytes: &[u8] = buf.get_ref();
-        let hmac = get_hmac_msg(shared_secret, bytes)?;
+        let bytes = (timestamp / 30).to_be_bytes();
+        let hmac = get_hmac_msg(shared_secret, &bytes)?;
         let result = hmac.finalize().into_bytes();
         let slice_start = result[19] & 0x0F;
         let slice_end = slice_start + 4;
