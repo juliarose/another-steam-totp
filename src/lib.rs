@@ -29,7 +29,7 @@ pub enum Error {
     IO(#[from] std::io::Error),
 }
 
-/// The tag used for [`generate_confirmation_key`].
+/// The tag used in [`generate_confirmation_key`].
 pub enum Tag {
     /// To load the confirmations page.
     Conf,
@@ -85,7 +85,7 @@ pub fn generate_auth_code(
 /// # Examples
 ///
 /// ```
-/// use another_steam_totp::generate_confirmation_key;
+/// use another_steam_totp::{generate_confirmation_key, Tag};
 /// 
 /// let identity_secret = String::from("000000000000000000000000000=");
 /// let code = generate_confirmation_key(identity_secret, Tag::Allow, None).unwrap();
