@@ -24,11 +24,10 @@ pub enum Error {
     HmacInvalidLength,
 }
 
-/// Generates the 5-character authentication code to login to Steam. The secret is your 
-/// `shared_secret`.
+/// Generates the 5-character authentication code to login to Steam using your `shared_secret`.
 /// 
 /// `time_offset` is the number of seconds in which your system is **behind** Steam's servers. If 
-/// set, this will add the offset onto your system's current time.
+/// present, this will add the offset onto your system's current time. Otherwise no offset is used.
 /// 
 /// # Examples
 ///
@@ -53,7 +52,7 @@ pub fn generate_auth_code(
 /// Generates a confirmation key.
 /// 
 /// `time_offset` is the number of seconds in which your system is **behind** Steam's servers. If 
-/// set, this will add the offset onto your system's current time.
+/// present, this will add the offset onto your system's current time. Otherwise no offset is used.
 pub fn generate_confirmation_key(
     identity_secret: String,
     tag: String,

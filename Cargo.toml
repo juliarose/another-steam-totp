@@ -1,7 +1,13 @@
 [package]
 name = "another-steam-totp"
+description = "Implementation of Steam time-based one-time password."
 version = "0.1.0"
 edition = "2021"
+homepage = "https://github.com/juliarose/another-steam-totp"
+repository = "https://github.com/juliarose/another-steam-totp"
+license = "MIT"
+keywords = ["steam", "totp"]
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
