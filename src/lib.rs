@@ -28,6 +28,7 @@ pub enum Error {
     IO(#[from] std::io::Error),
 }
 
+#[derive(Debug, Clone, Copy)]
 /// The tag used in [`generate_confirmation_key`].
 pub enum Tag {
     /// To load the confirmations page.
@@ -76,10 +77,13 @@ pub fn generate_auth_code(
     generate_auth_code_for_time(shared_secret, timestamp)
 }
 
-/// Generates a confirmation key.
+/// Generates a confirmation key. 
 /// 
 /// `time_offset` is the number of seconds in which your system is **behind** Steam's servers. If 
 /// present, this will add the offset onto your system's current time. Otherwise no offset is used.
+/// 
+/// This method returns both the confirmation key and the timestamp used to generate the 
+/// confirmation key. 
 /// 
 /// # Examples
 ///
@@ -87,16 +91,17 @@ pub fn generate_auth_code(
 /// use another_steam_totp::{generate_confirmation_key, Tag};
 /// 
 /// let identity_secret = String::from("000000000000000000000000000=");
-/// let code = generate_confirmation_key(identity_secret, Tag::Allow, None).unwrap();
+/// let (code, time) = generate_confirmation_key(identity_secret, Tag::Allow, None).unwrap();
 /// ```
 pub fn generate_confirmation_key(
     identity_secret: String,
     tag: Tag,
     time_offset: Option<i64>,
-) -> Result<String, Error> {
+) -> Result<(String, i64), Error> {
     let timestamp = current_timestamp()? as i64 + time_offset.unwrap_or(0);
+    let confirmation_key = generate_confirmation_key_for_time(identity_secret, tag, timestamp)?;
     
-    generate_confirmation_key_for_time(identity_secret, tag, timestamp)
+    Ok((confirmation_key, timestamp))
 }
 
 /// Gets the device ID for a given `steamid`.
