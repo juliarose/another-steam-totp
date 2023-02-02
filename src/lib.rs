@@ -11,17 +11,22 @@ const CHARS: &[char] = &['2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 
 
 type HmacSha1 = Hmac<Sha1>;
 
-// Any number of errors that occur during code generations.
+// Any number of errors that can occur during code generations.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("{}", .0)]
-    IO(#[from] std::io::Error),
+    /// The secret could be decoded encoded to base64 and is therefor invalid.
+    #[error("Error decoding from base64 {}", .0)]
+    InvalidSecret(#[from] base64::DecodeError),
+    /// The inputted data to the HMAC is empty.
+    #[error("The secret is empty")]
+    SecretIsEmpty,
+    /// An error occurred when reading your computer's system time.
     #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
     SystemTime(#[from] SystemTimeError),
-    #[error("Error decoding from base64 {}", .0)]
-    Base64(#[from] base64::DecodeError),
-    #[error("Length of Hmac is invalid")]
-    HmacInvalidLength,
+    /// An error occurred when reading/writing bytes from/to a [`Cursor`]. This should reasonably 
+    /// never happen, but if it does it will be returned here.
+    #[error("{}", .0)]
+    IO(#[from] std::io::Error),
 }
 
 /// Generates the 5-character authentication code to login to Steam using your `shared_secret`.
@@ -101,6 +106,7 @@ fn current_timestamp() -> Result<u64, SystemTimeError> {
     Ok(timestamp.as_secs())
 }
 
+/// Generates an auth code for the given time.
 fn generate_auth_code_for_time(
     shared_secret: String,
     timestamp: i64,
@@ -133,6 +139,7 @@ fn generate_auth_code_for_time(
     Ok(code)
 }
 
+/// Generates a confirmation key for the given time.
 fn generate_confirmation_key_for_time(
     identity_secret: String,
     timestamp: i64,
@@ -147,30 +154,33 @@ fn generate_confirmation_key_for_time(
     Ok(base64::encode(code_bytes))
 }
 
+/// Generates an hmac message.
 fn get_hmac_msg(
     secret: String,
     bytes: &[u8],
 ) -> Result<HmacSha1, Error> {
     let decoded = base64::decode(secret)?;
     let mut mac = HmacSha1::new_from_slice(&decoded[..])
-        .map_err(|_e| Error::HmacInvalidLength)?;
+        .map_err(|_e| Error::SecretIsEmpty)?;
     
     mac.update(bytes);
     
     Ok(mac)
 }
 
+/// An error occurred during the request.
 #[cfg(feature = "reqwest")]
 #[derive(thiserror::Error, Debug)]
 pub enum RequestError {
+    /// A request error.
     #[error("Reqwest error: {}", .0)]
     Reqwest(#[from] reqwest::Error),
+    /// An error parsing the response.
     #[error("Error parsing response from Steam: {}", .0)]
     Serde(#[from] serde_json::error::Error),
+    /// An error occurred when reading your computer's system time.
     #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
     SystemTime(#[from] SystemTimeError),
-    #[error("Error converting current system time to a u32: {}", .0)]
-    ConvertSystemTimeToU32(#[from] std::num::TryFromIntError),
 }
 
 /// Gets how many seconds we are **behind** Steam's servers.
