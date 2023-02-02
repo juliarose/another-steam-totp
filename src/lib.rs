@@ -19,7 +19,7 @@ pub enum Error {
     InvalidSecret(#[from] base64::DecodeError),
     /// The inputted data to the HMAC is empty.
     #[error("The secret is empty")]
-    SecretIsEmpty,
+    EmptySecret,
     /// An error occurred when reading your computer's system time.
     #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
     SystemTime(#[from] SystemTimeError),
@@ -194,7 +194,7 @@ fn get_hmac_msg(
 ) -> Result<HmacSha1, Error> {
     let decoded = base64::decode(secret)?;
     let mut mac = HmacSha1::new_from_slice(&decoded[..])
-        .map_err(|_e| Error::SecretIsEmpty)?;
+        .map_err(|_e| Error::EmptySecret)?;
     
     mac.update(bytes);
     
