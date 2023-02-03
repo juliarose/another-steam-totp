@@ -78,7 +78,7 @@ pub fn generate_auth_code(
     generate_auth_code_for_time(shared_secret, timestamp)
 }
 
-/// Generates a confirmation key use your `identity_secret`.
+/// Generates a confirmation key using your `identity_secret`.
 /// 
 /// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers. 
 /// If present, this will add the offset onto your system's current time. Otherwise no offset is 
