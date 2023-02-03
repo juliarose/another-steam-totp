@@ -13,13 +13,13 @@ type HmacSha1 = Hmac<Sha1>;
 // Any number of errors that can occur during code generations.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    /// The secret could not be encoded to base64 and is therefore invalid.
-    #[error("Error decoding secret from base64 {}", .0)]
+    /// The secret could not be encoded to base64.
+    #[error("Error decoding secret from base64: {}", .0)]
     InvalidSecret(#[from] base64::DecodeError),
-    /// The secret given is empty..
+    /// The secret given is empty.
     #[error("The secret is empty")]
     EmptySecret,
-    /// An error occurred when reading your computer's system time.
+    /// System time is set to before the Unix epoch.
     #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
     SystemTime(#[from] SystemTimeError),
     /// An error occurred when reading/writing bytes from/to a [`Cursor`]. This should reasonably 
@@ -54,8 +54,9 @@ impl fmt::Display for Tag {
 
 /// Generates the 5-character authentication code to login to Steam using your `shared_secret`.
 /// 
-/// `time_offset` is the number of seconds in which your system is **behind** Steam's servers. If 
-/// present, this will add the offset onto your system's current time. Otherwise no offset is used.
+/// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers. 
+/// If present, this will add the offset onto your system's current time. Otherwise no offset is 
+/// used.
 /// 
 /// # Examples
 ///
@@ -77,13 +78,14 @@ pub fn generate_auth_code(
     generate_auth_code_for_time(shared_secret, timestamp)
 }
 
-/// Generates a confirmation key. 
+/// Generates a confirmation key use your `identity_secret`.
 /// 
-/// `time_offset` is the number of seconds in which your system is **behind** Steam's servers. If 
-/// present, this will add the offset onto your system's current time. Otherwise no offset is used.
+/// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers. 
+/// If present, this will add the offset onto your system's current time. Otherwise no offset is 
+/// used.
 /// 
 /// This method returns both the confirmation key and the timestamp used to generate the 
-/// confirmation key. 
+/// confirmation key, these are required parameters when sending the `/mobileconf/ajaxop` request.
 /// 
 /// # Examples
 ///
@@ -104,7 +106,7 @@ pub fn generate_confirmation_key(
     Ok((confirmation_key, timestamp))
 }
 
-/// Gets the device ID for a given `steamid`.
+/// Gets the device ID for a given 64-bit `steamid`.
 /// 
 /// # Examples
 /// 
