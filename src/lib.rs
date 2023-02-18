@@ -1,4 +1,6 @@
-//! Anotha one.
+//! Provides functionality relating to Steam TOTP. Based on 
+//! <https://github.com/DoctorMcKay/node-steam-totp>. Designed to be easy-to-use while providing 
+//! all necessary features.
 
 use std::{io::Cursor, time::{SystemTime, SystemTimeError, UNIX_EPOCH}, fmt};
 use hmac::{Hmac, Mac};
@@ -10,14 +12,14 @@ const CHARS: &[char] = &['2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 
 
 type HmacSha1 = Hmac<Sha1>;
 
-// Any number of errors that can occur during code generations.
+/// Any number of errors that can occur during code generations.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// The secret could not be encoded to base64.
     #[error("Error decoding secret from base64: {}", .0)]
     InvalidSecret(#[from] base64::DecodeError),
     /// The secret given is empty.
-    #[error("The secret is empty")]
+    #[error("The secret is empty.")]
     EmptySecret,
     /// System time is set to before the Unix epoch.
     #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
@@ -78,14 +80,16 @@ pub fn generate_auth_code(
     generate_auth_code_for_time(shared_secret, timestamp)
 }
 
-/// Generates a confirmation key using your `identity_secret`.
+/// Generates a confirmation key for responding to mobile confirmations using your 
+/// `identity_secret`.
 /// 
 /// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers. 
 /// If present, this will add the offset onto your system's current time. Otherwise no offset is 
 /// used.
 /// 
 /// This method returns both the confirmation key and the timestamp used to generate the 
-/// confirmation key, these are required parameters when sending the `/mobileconf/ajaxop` request.
+/// confirmation key, these are required parameters when sending the request for 
+/// `https://steamcommunity.com/mobileconf/mobileconf/ajaxop`.
 /// 
 /// # Examples
 ///
@@ -94,6 +98,8 @@ pub fn generate_auth_code(
 /// 
 /// let identity_secret = String::from("000000000000000000000000000=");
 /// let (code, time) = generate_confirmation_key(identity_secret, Tag::Allow, None).unwrap();
+/// 
+/// // pass these to the request parameters ..
 /// ```
 pub fn generate_confirmation_key(
     identity_secret: String,
@@ -113,9 +119,7 @@ pub fn generate_confirmation_key(
 /// ```
 /// use another_steam_totp::get_device_id;
 /// 
-/// let devide_id = get_device_id(76561197960287930);
-///         
-/// assert_eq!(devide_id, "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
+/// assert_eq!(get_device_id(76561197960287930), "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
 /// ```
 pub fn get_device_id(steamid: u64) -> String {
     let mut hasher = Sha1::new();
@@ -199,7 +203,6 @@ fn get_hmac_msg(
         .map_err(|_e| Error::EmptySecret)?;
     
     mac.update(bytes);
-    
     Ok(mac)
 }
 
