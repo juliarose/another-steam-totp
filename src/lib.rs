@@ -6,6 +6,7 @@ use std::{io::Cursor, time::{SystemTime, SystemTimeError, UNIX_EPOCH}, fmt};
 use hmac::{Hmac, Mac};
 use byteorder::{BigEndian, ReadBytesExt};
 use sha1::{Sha1, Digest};
+use base64::Engine;
 
 const CHARS: &[char] = &['2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 
 'N', 'P', 'Q', 'R', 'T', 'V', 'W', 'X', 'Y'];
@@ -65,16 +66,19 @@ impl fmt::Display for Tag {
 /// ```
 /// use another_steam_totp::generate_auth_code;
 /// 
-/// let shared_secret = String::from("000000000000000000000000000=");
+/// let shared_secret = "000000000000000000000000000=";
 /// let time_offset = None;
 /// let code = generate_auth_code(shared_secret, time_offset).unwrap();
 /// 
 /// assert_eq!(code.len(), 5);
 /// ```
-pub fn generate_auth_code(
-    shared_secret: String,
+pub fn generate_auth_code<T>(
+    shared_secret: T,
     time_offset: Option<i64>,
-) -> Result<String, Error> {
+) -> Result<String, Error>
+where
+    T: AsRef<[u8]>,
+{
     let timestamp = current_timestamp()? as i64 + time_offset.unwrap_or(0);
     
     generate_auth_code_for_time(shared_secret, timestamp)
@@ -96,16 +100,24 @@ pub fn generate_auth_code(
 /// ```
 /// use another_steam_totp::{generate_confirmation_key, Tag};
 /// 
-/// let identity_secret = String::from("000000000000000000000000000=");
-/// let (code, time) = generate_confirmation_key(identity_secret, Tag::Allow, None).unwrap();
+/// let identity_secret = "000000000000000000000000000=";
+/// let time_offset = None;
+/// let (code, timestamp) = generate_confirmation_key(
+///     identity_secret,
+///     Tag::Allow,
+///     time_offset,
+/// ).unwrap();
 /// 
 /// // pass these to the request parameters ..
 /// ```
-pub fn generate_confirmation_key(
-    identity_secret: String,
+pub fn generate_confirmation_key<T>(
+    identity_secret: T,
     tag: Tag,
     time_offset: Option<i64>,
-) -> Result<(String, i64), Error> {
+) -> Result<(String, i64), Error>
+where
+    T: AsRef<[u8]>,
+{
     let timestamp = current_timestamp()? as i64 + time_offset.unwrap_or(0);
     let confirmation_key = generate_confirmation_key_for_time(identity_secret, tag, timestamp)?;
     
@@ -119,7 +131,10 @@ pub fn generate_confirmation_key(
 /// ```
 /// use another_steam_totp::get_device_id;
 /// 
-/// assert_eq!(get_device_id(76561197960287930), "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
+/// let steamid: u64 = 76561197960287930;
+/// let device_id = get_device_id(steamid);
+/// 
+/// assert_eq!(device_id, "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
 /// ```
 pub fn get_device_id(steamid: u64) -> String {
     let mut hasher = Sha1::new();
@@ -149,10 +164,13 @@ fn current_timestamp() -> Result<u64, SystemTimeError> {
 }
 
 /// Generates an auth code for the given time.
-fn generate_auth_code_for_time(
-    shared_secret: String,
+fn generate_auth_code_for_time<T>(
+    shared_secret: T,
     timestamp: i64,
-) -> Result<String, Error> {
+) -> Result<String, Error>
+where
+    T: AsRef<[u8]>,
+{
     let mut full_code = {
         let bytes = (timestamp / 30).to_be_bytes();
         let hmac = get_hmac_msg(shared_secret, &bytes)?;
@@ -178,11 +196,14 @@ fn generate_auth_code_for_time(
 }
 
 /// Generates a confirmation key for the given time.
-fn generate_confirmation_key_for_time(
-    identity_secret: String,
+fn generate_confirmation_key_for_time<T>(
+    identity_secret: T,
     tag: Tag,
     timestamp: i64,
-) -> Result<String, Error> {
+) -> Result<String, Error>
+where
+    T: AsRef<[u8]>,
+{
     let timestamp_bytes = timestamp.to_be_bytes();
     let tag_string = tag.to_string();
     let tag_bytes = tag_string.as_bytes();
@@ -190,15 +211,18 @@ fn generate_confirmation_key_for_time(
     let hmac = get_hmac_msg(identity_secret, &array)?;
     let code_bytes = hmac.finalize().into_bytes();
     
-    Ok(base64::encode(code_bytes))
+    Ok(base64::engine::general_purpose::STANDARD.encode(code_bytes))
 }
 
 /// Generates an hmac message.
-fn get_hmac_msg(
-    secret: String,
+fn get_hmac_msg<T>(
+    secret: T,
     bytes: &[u8],
-) -> Result<HmacSha1, Error> {
-    let decoded = base64::decode(secret)?;
+) -> Result<HmacSha1, Error>
+where
+    T: AsRef<[u8]>,
+{
+    let decoded = base64::engine::general_purpose::STANDARD.decode(secret)?;
     let mut mac = HmacSha1::new_from_slice(&decoded[..])
         .map_err(|_e| Error::EmptySecret)?;
     
@@ -262,7 +286,7 @@ mod tests {
     
     #[test]
     fn generates_confirmation_key_for_time() {
-        let identity_secret = "000000000000000000000000000=".into();
+        let identity_secret = "000000000000000000000000000=";
         let hash = generate_confirmation_key_for_time(
             identity_secret,
             Tag::Allow,
@@ -274,7 +298,7 @@ mod tests {
     
     #[test]
     fn generating_a_code_works() {
-        let shared_secret = String::from("000000000000000000000000000=");
+        let shared_secret = "000000000000000000000000000=";
         let time: i64 = 1634603498;
         let code = generate_auth_code_for_time(shared_secret, time).unwrap();
         
@@ -283,8 +307,8 @@ mod tests {
     
     #[test]
     fn gets_device_id() {
-        let devide_id = get_device_id(76561197960287930);
+        let device_id = get_device_id(76561197960287930);
         
-        assert_eq!(devide_id, "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
+        assert_eq!(device_id, "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
     }
 }
