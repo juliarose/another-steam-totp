@@ -1,7 +1,7 @@
 [package]
 name = "another-steam-totp"
 description = "Implementation of Steam time-based one-time password."
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 homepage = "https://github.com/juliarose/another-steam-totp"
 repository = "https://github.com/juliarose/another-steam-totp"
@@ -14,7 +14,6 @@ readme = "README.md"
 [dependencies]
 base64 = "0.21.2"
 sha-1 = "0.10.0"
-byteorder = "1"
 hmac = "^0.12"
 thiserror = "1.0"
 reqwest = { version = "^0.11", features = ["json"], optional = true }

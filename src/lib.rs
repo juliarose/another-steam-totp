@@ -2,14 +2,16 @@
 //! <https://github.com/DoctorMcKay/node-steam-totp>. Designed to be easy-to-use while providing 
 //! all necessary features.
 
-use std::{io::Cursor, time::{SystemTime, SystemTimeError, UNIX_EPOCH}, fmt};
+use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
+use std::fmt;
 use hmac::{Hmac, Mac};
-use byteorder::{BigEndian, ReadBytesExt};
 use sha1::{Sha1, Digest};
 use base64::Engine;
 
-const CHARS: &[char] = &['2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 
-'N', 'P', 'Q', 'R', 'T', 'V', 'W', 'X', 'Y'];
+const CHARS: &[char] = &[
+    '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G',
+    'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'T', 'V', 'W', 'X', 'Y',
+];
 
 type HmacSha1 = Hmac<Sha1>;
 
@@ -25,8 +27,8 @@ pub enum Error {
     /// System time is set to before the Unix epoch.
     #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
     SystemTime(#[from] SystemTimeError),
-    /// An error occurred when reading/writing bytes from/to a [`Cursor`]. This should reasonably 
-    /// never happen, but if it does it will be returned here.
+    /// An error occurred when reading/writing bytes. This should reasonably never happen, but if 
+    /// it does it will be returned here.
     #[error("IO error: {}", .0)]
     IO(#[from] std::io::Error),
 }
@@ -55,14 +57,14 @@ impl fmt::Display for Tag {
     }
 }
 
-/// Generates the 5-character authentication code to login to Steam using your `shared_secret`.
+/// Generates the 5-character authentication code to login to Steam using your base64-encoded 
+/// `shared_secret`.
 /// 
 /// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers. 
 /// If present, this will add the offset onto your system's current time. Otherwise no offset is 
 /// used.
 /// 
 /// # Examples
-///
 /// ```
 /// use another_steam_totp::generate_auth_code;
 /// 
@@ -84,7 +86,7 @@ where
     generate_auth_code_for_time(shared_secret, timestamp)
 }
 
-/// Generates a confirmation key for responding to mobile confirmations using your 
+/// Generates a confirmation key for responding to mobile confirmations using your base64-encoded 
 /// `identity_secret`.
 /// 
 /// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers. 
@@ -96,7 +98,6 @@ where
 /// `https://steamcommunity.com/mobileconf/mobileconf/ajaxop`.
 /// 
 /// # Examples
-///
 /// ```
 /// use another_steam_totp::{generate_confirmation_key, Tag};
 /// 
@@ -127,7 +128,6 @@ where
 /// Gets the device ID for a given 64-bit `steamid`.
 /// 
 /// # Examples
-/// 
 /// ```
 /// use another_steam_totp::get_device_id;
 /// 
@@ -178,7 +178,13 @@ where
         let slice_start = result[19] & 0x0F;
         let slice_end = slice_start + 4;
         let slice: &[u8] = &result[slice_start as usize..slice_end as usize];
-        let full_code_bytes = Cursor::new(&slice).read_u32::<BigEndian>()?;
+        let full_code_slice: [u8; 4] = slice.try_into()
+            // This probably should never fail.
+            .map_err(|_e| std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Failed to convert slice to array.",
+            ))?;
+        let full_code_bytes = u32::from_be_bytes(full_code_slice);
         
         full_code_bytes & 0x7FFFFFFF
     };
