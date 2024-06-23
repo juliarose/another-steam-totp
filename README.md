@@ -19,4 +19,4 @@ assert_eq!(code.len(), 5);
 
 ## License
 
-MIT
+[MIT](https://github.com/juliarose/another-steam-totp/tree/main/LICENSE)
