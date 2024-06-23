@@ -4,6 +4,8 @@
 //! 
 //! Enable the `reqwest` feature to enable the `get_steam_server_time_offset` function.
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 use std::fmt::{self, Write};
 use hmac::{Hmac, Mac};
@@ -301,9 +303,8 @@ impl fmt::Display for RequestError {
 }
 
 /// Gets how many seconds we are **behind** Steam's servers.
-/// 
-/// (The function is only available if the `reqwest` feature is enabled)
 #[cfg(feature = "reqwest")]
+#[cfg_attr(docsrs, doc(cfg(feature = "reqwest")))]
 pub async fn get_steam_server_time_offset() -> Result<i64, RequestError> {
     use std::str::FromStr;
     use serde::{de, Deserialize, Deserializer};
