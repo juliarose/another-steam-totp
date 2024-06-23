@@ -1,9 +1,11 @@
 //! Provides functionality relating to Steam TOTP. Based on 
 //! <https://github.com/DoctorMcKay/node-steam-totp>. Designed to be easy-to-use while providing 
 //! all necessary features.
+//! 
+//! Enable the `reqwest` feature to enable the `get_steam_server_time_offset` function.
 
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
-use std::fmt;
+use std::fmt::{self, Write};
 use hmac::{Hmac, Mac};
 use sha1::{Sha1, Digest};
 use base64::Engine;
@@ -16,21 +18,46 @@ const CHARS: &[char] = &[
 type HmacSha1 = Hmac<Sha1>;
 
 /// Any number of errors that can occur during code generations.
-#[derive(thiserror::Error, Debug)]
+#[derive(Debug)]
 pub enum Error {
     /// The secret could not be encoded to base64.
-    #[error("Error decoding secret from base64: {}", .0)]
-    InvalidSecret(#[from] base64::DecodeError),
+    InvalidSecret(base64::DecodeError),
     /// The secret given is empty.
-    #[error("The secret is empty.")]
     EmptySecret,
     /// System time is set to before the Unix epoch.
-    #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
-    SystemTime(#[from] SystemTimeError),
+    SystemTime(SystemTimeError),
     /// An error occurred when reading/writing bytes. This should reasonably never happen, but if 
     /// it does it will be returned here.
-    #[error("IO error: {}", .0)]
-    IO(#[from] std::io::Error),
+    IO(std::io::Error),
+}
+
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Self {
+        Self::IO(e)
+    }
+}
+
+impl From<SystemTimeError> for Error {
+    fn from(e: SystemTimeError) -> Self {
+        Self::SystemTime(e)
+    }
+}
+
+impl From<base64::DecodeError> for Error {
+    fn from(e: base64::DecodeError) -> Self {
+        Self::InvalidSecret(e)
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidSecret(e) => write!(f, "Error decoding secret from base64: {}", e),
+            Self::EmptySecret => write!(f, "The secret is empty."),
+            Self::SystemTime(e) => write!(f, "SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", e),
+            Self::IO(e) => write!(f, "IO error: {}", e),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -144,8 +171,10 @@ pub fn get_device_id(steamid: u64) -> String {
     let result = hasher.finalize();
     let hash = result
         .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect::<String>();
+        .fold(String::new(), |mut output, b| {
+            let _ = write!(output, "{b:02x}");
+            output
+        });
     // taken from https://crates.io/crates/steam-totp
     let (one, rest) = hash.split_at(8);
     let (two, rest) = rest.split_at(4);
@@ -238,17 +267,42 @@ where
 
 /// An error occurred during the request.
 #[cfg(feature = "reqwest")]
-#[derive(thiserror::Error, Debug)]
+#[cfg_attr(docsrs, doc(cfg(feature = "reqwest")))]
+#[derive(Debug)]
 pub enum RequestError {
     /// A request error occured (either network or deserialization).
-    #[error("Reqwest error: {}", .0)]
-    Reqwest(#[from] reqwest::Error),
+    Reqwest(reqwest::Error),
     /// An error occurred when reading your computer's system time.
-    #[error("SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", .0)]
-    SystemTime(#[from] SystemTimeError),
+    SystemTime(SystemTimeError),
+}
+
+#[cfg(feature = "reqwest")]
+impl From<reqwest::Error> for RequestError {
+    fn from(e: reqwest::Error) -> Self {
+        Self::Reqwest(e)
+    }
+}
+
+#[cfg(feature = "reqwest")]
+impl From<SystemTimeError> for RequestError {
+    fn from(e: SystemTimeError) -> Self {
+        Self::SystemTime(e)
+    }
+}
+
+#[cfg(feature = "reqwest")]
+impl fmt::Display for RequestError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Reqwest(e) => write!(f, "Reqwest error: {}", e),
+            Self::SystemTime(e) => write!(f, "SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", e),
+        }
+    }
 }
 
 /// Gets how many seconds we are **behind** Steam's servers.
+/// 
+/// (The function is only available if the `reqwest` feature is enabled)
 #[cfg(feature = "reqwest")]
 pub async fn get_steam_server_time_offset() -> Result<i64, RequestError> {
     use std::str::FromStr;
