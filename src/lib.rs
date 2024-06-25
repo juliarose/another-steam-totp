@@ -6,6 +6,12 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+mod error;
+mod tag;
+
+pub use error::Error;
+pub use tag::Tag;
+
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 use std::fmt::{self, Write};
 use hmac::{Hmac, Mac};
@@ -18,73 +24,6 @@ const CHARS: &[char] = &[
 ];
 
 type HmacSha1 = Hmac<Sha1>;
-
-/// Any number of errors that can occur during code generations.
-#[derive(Debug)]
-pub enum Error {
-    /// The secret could not be encoded to base64.
-    InvalidSecret(base64::DecodeError),
-    /// The secret given is empty.
-    EmptySecret,
-    /// System time is set to before the Unix epoch.
-    SystemTime(SystemTimeError),
-    /// An error occurred when reading/writing bytes. This should reasonably never happen, but if 
-    /// it does it will be returned here.
-    IO(std::io::Error),
-}
-
-impl From<std::io::Error> for Error {
-    fn from(e: std::io::Error) -> Self {
-        Self::IO(e)
-    }
-}
-
-impl From<SystemTimeError> for Error {
-    fn from(e: SystemTimeError) -> Self {
-        Self::SystemTime(e)
-    }
-}
-
-impl From<base64::DecodeError> for Error {
-    fn from(e: base64::DecodeError) -> Self {
-        Self::InvalidSecret(e)
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidSecret(e) => write!(f, "Error decoding secret from base64: {}", e),
-            Self::EmptySecret => write!(f, "The secret is empty."),
-            Self::SystemTime(e) => write!(f, "SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", e),
-            Self::IO(e) => write!(f, "IO error: {}", e),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-/// The tag used in [`generate_confirmation_key`].
-pub enum Tag {
-    /// To load the confirmations page.
-    Conf,
-    /// To load details about a trade.
-    Details,
-    /// To confirm a confirmation.
-    Allow,
-    /// To cancel a confirmation.
-    Cancel,
-}
-
-impl fmt::Display for Tag {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Conf => write!(f, "conf"),
-            Self::Details => write!(f, "details"),
-            Self::Allow => write!(f, "allow"),
-            Self::Cancel => write!(f, "cancel"),
-        }
-    }
-}
 
 /// Generates the 5-character authentication code to login to Steam using your base64-encoded 
 /// `shared_secret`.
