@@ -10,6 +10,8 @@ mod error;
 mod tag;
 
 pub use error::Error;
+#[cfg(feature = "reqwest")]
+pub use error::RequestError;
 pub use tag::Tag;
 
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
@@ -204,41 +206,6 @@ where
     
     mac.update(bytes);
     Ok(mac)
-}
-
-/// An error occurred during the request.
-#[cfg(feature = "reqwest")]
-#[cfg_attr(docsrs, doc(cfg(feature = "reqwest")))]
-#[derive(Debug)]
-pub enum RequestError {
-    /// A request error occured (either network or deserialization).
-    Reqwest(reqwest::Error),
-    /// An error occurred when reading your computer's system time.
-    SystemTime(SystemTimeError),
-}
-
-#[cfg(feature = "reqwest")]
-impl From<reqwest::Error> for RequestError {
-    fn from(e: reqwest::Error) -> Self {
-        Self::Reqwest(e)
-    }
-}
-
-#[cfg(feature = "reqwest")]
-impl From<SystemTimeError> for RequestError {
-    fn from(e: SystemTimeError) -> Self {
-        Self::SystemTime(e)
-    }
-}
-
-#[cfg(feature = "reqwest")]
-impl fmt::Display for RequestError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Reqwest(e) => write!(f, "Reqwest error: {}", e),
-            Self::SystemTime(e) => write!(f, "SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", e),
-        }
-    }
 }
 
 /// Gets how many seconds we are **behind** Steam's servers.
