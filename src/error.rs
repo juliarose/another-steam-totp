@@ -1,7 +1,7 @@
 //! Errors.
 
-use std::time::SystemTimeError;
 use std::fmt;
+use std::time::SystemTimeError;
 
 /// Any number of errors that can occur during code generations.
 #[derive(Debug)]
@@ -12,7 +12,7 @@ pub enum Error {
     EmptySecret,
     /// System time is set to before the Unix epoch.
     SystemTime(SystemTimeError),
-    /// An error occurred when reading/writing bytes. This should reasonably never happen, but if 
+    /// An error occurred when reading/writing bytes. This should reasonably never happen, but if
     /// it does it will be returned here.
     IO(std::io::Error),
 }
