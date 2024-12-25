@@ -15,7 +15,7 @@ pub use error::RequestError;
 pub use tag::Tag;
 
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
-use std::fmt::{self, Write};
+use std::fmt::Write;
 use hmac::{Hmac, Mac};
 use sha1::{Sha1, Digest};
 use base64::Engine;
@@ -218,7 +218,7 @@ pub async fn get_steam_server_time_offset() -> Result<i64, RequestError> {
     fn from_string<'de, T, D>(deserializer: D) -> Result<T, D::Error>
     where
         T: FromStr,
-        T::Err: fmt::Display,
+        T::Err: std::fmt::Display,
         D: Deserializer<'de>,
     {
         String::deserialize(deserializer)?.parse().map_err(de::Error::custom)
