@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.5 (2024-12-25)
+
+### Changed
+- Added `std::error::Error` implementation for `Error`.
+
 ## 0.3.4 (2024-12-25)
 
 ### Changed
