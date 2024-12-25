@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.4 (2024-12-25)
+
+### Changed
+- Updated dependencies.
+
 ## 0.3.3 (2024-06-23)
 
 ### Fixed
