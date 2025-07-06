@@ -8,6 +8,8 @@ use std::fmt;
 pub enum Error {
     /// The secret could not be decoded from base64.
     InvalidSecret(base64::DecodeError),
+    /// The secret given is not a valid hex string.
+    InvalidHexSecret,
     /// The secret given is empty.
     EmptySecret,
     /// System time is set to before the Unix epoch.
@@ -41,6 +43,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidSecret(e) => write!(f, "Error decoding secret from base64: {}", e),
+            Self::InvalidHexSecret => write!(f, "The secret is not a valid hex string."),
             Self::EmptySecret => write!(f, "The secret is empty."),
             Self::SystemTime(e) => write!(f, "SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", e),
             Self::IO(e) => write!(f, "IO error: {}", e),
