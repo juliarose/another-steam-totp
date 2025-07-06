@@ -278,7 +278,7 @@ mod tests {
         let shared_secret = "D34D34D34D34D34D34D34D34D34D34D34D34D34D";
         let timestamp = 1634603498;
         let code = generate_auth_code_for_time(shared_secret, timestamp).unwrap();
-
+        
         assert_eq!(code, "2C5H2");
     }
     

@@ -1,8 +1,8 @@
 [package]
 name = "another-steam-totp"
 description = "Implementation of Steam time-based one-time password."
-version = "0.3.5"
-edition = "2021"
+version = "0.4.0"
+edition = "2024"
 homepage = "https://github.com/juliarose/another-steam-totp"
 repository = "https://github.com/juliarose/another-steam-totp"
 license = "MIT"
