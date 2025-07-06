@@ -1,5 +1,5 @@
-//! Provides functionality relating to Steam TOTP. Based on 
-//! <https://github.com/DoctorMcKay/node-steam-totp>. Designed to be easy-to-use while providing 
+//! Provides functionality relating to Steam TOTP. Based on
+//! <https://github.com/DoctorMcKay/node-steam-totp>. Designed to be easy-to-use while providing
 //! all necessary features.
 //! 
 //! Enable the `reqwest` feature to enable the `get_steam_server_time_offset` function.
@@ -27,11 +27,11 @@ const CHARS: &[char] = &[
 
 type HmacSha1 = Hmac<Sha1>;
 
-/// Generates the 5-character authentication code to login to Steam using your base64-encoded 
+/// Generates the 5-character authentication code to login to Steam using your base64-encoded
 /// `shared_secret`.
 /// 
-/// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers. 
-/// If present, this will add the offset onto your system's current time. Otherwise no offset is 
+/// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers.
+/// If present, this will add the offset onto your system's current time. Otherwise no offset is
 /// used.
 /// 
 /// # Examples
@@ -56,15 +56,15 @@ where
     generate_auth_code_for_time(shared_secret, timestamp)
 }
 
-/// Generates a confirmation key for responding to mobile confirmations using your base64-encoded 
+/// Generates a confirmation key for responding to mobile confirmations using your base64-encoded
 /// `identity_secret`.
 /// 
-/// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers. 
-/// If present, this will add the offset onto your system's current time. Otherwise no offset is 
+/// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers.
+/// If present, this will add the offset onto your system's current time. Otherwise no offset is
 /// used.
 /// 
-/// This method returns both the confirmation key and the timestamp used to generate the 
-/// confirmation key, these are required parameters when sending the request for 
+/// This method returns both the confirmation key and the timestamp used to generate the
+/// confirmation key, these are required parameters when sending the request for
 /// `https://steamcommunity.com/mobileconf/mobileconf/ajaxop`.
 /// 
 /// # Examples
