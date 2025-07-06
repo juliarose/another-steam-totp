@@ -8,10 +8,12 @@
 
 mod error;
 mod tag;
+mod decode;
 
 pub use error::Error;
 pub use tag::Tag;
 
+use decode::decode_secret;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::fmt::Write;
 use hmac::{Hmac, Mac};
@@ -183,48 +185,6 @@ where
     Ok(base64::engine::general_purpose::STANDARD.encode(code_bytes))
 }
 
-/// Decodes a hex-encoded secret.
-fn decode_hex<T>(s: T) -> Result<Vec<u8>, Error>
-where
-    T: AsRef<[u8]>,
-{
-    let len = s.as_ref().len();
-    let mut bytes = Vec::with_capacity(len / 2);
-    let mut iter = s.as_ref().iter();
-    
-    while let Some(hi) = iter.next() {
-        // Get the next byte in the pair.
-        let lo = iter.next().ok_or(Error::InvalidHexSecret)?;
-        let hi_val = (*hi as char).to_digit(16).ok_or(Error::InvalidHexSecret)? as u8;
-        let lo_val = (*lo as char).to_digit(16).ok_or(Error::InvalidHexSecret)? as u8;
-        let byte = (hi_val << 4) | lo_val;
-        
-        bytes.push(byte);
-    }
-    
-    Ok(bytes)
-}
-
-/// Decodes a secret from either base64 or hex encoding.
-fn decode_secret<T>(secret: T) -> Result<Vec<u8>, Error>
-where
-    T: AsRef<[u8]>,
-{
-    let secret = secret.as_ref();
-    // Check if the secret is hex-encoded (contains only hex digits and is of even length)
-    let is_hex = secret.len() % 2 == 0 &&
-        secret.iter().all(|&b| (b as char).is_ascii_hexdigit());
-    let decoded = if is_hex {
-        // Decode from hex
-        decode_hex(secret)?
-    } else {
-        // Decode from base64
-        base64::engine::general_purpose::STANDARD.decode(secret)?
-    };
-    
-    Ok(decoded)
-}
-
 /// Generates an hmac message.
 fn get_hmac_msg<T>(
     secret: T,
@@ -327,13 +287,5 @@ mod tests {
         let device_id = get_device_id(76561197960287930);
         
         assert_eq!(device_id, "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
-    }
-    
-    #[test]
-    fn decode_hex_works() {
-        let hex = "48656c6c6f";
-        let decoded = decode_hex(hex).unwrap();
-        
-        assert_eq!(decoded, b"Hello");
     }
 }

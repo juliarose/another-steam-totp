@@ -8,8 +8,6 @@ use std::fmt;
 pub enum Error {
     /// The secret could not be decoded from base64.
     InvalidSecret(base64::DecodeError),
-    /// The secret given is not a valid hex string.
-    InvalidHexSecret,
     /// The secret given is empty.
     EmptySecret,
     /// System time is set to before the Unix epoch.
