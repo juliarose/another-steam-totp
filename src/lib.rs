@@ -50,7 +50,7 @@ pub fn generate_auth_code<T>(
 where
     T: AsRef<[u8]>,
 {
-    let timestamp = current_timestamp()? + time_offset.unwrap_or(0);
+    let timestamp = get_offset_timestamp(time_offset)?;
     
     generate_auth_code_for_time(shared_secret, timestamp)
 }
@@ -77,11 +77,11 @@ pub fn generate_confirmation_key<T>(
     identity_secret: T,
     tag: Tag,
     time_offset: Option<i64>,
-) -> Result<(String, i64), Error>
+) -> Result<(String, u64), Error>
 where
     T: AsRef<[u8]>,
 {
-    let timestamp = current_timestamp()? + time_offset.unwrap_or(0);
+    let timestamp = get_offset_timestamp(time_offset)?;
     let confirmation_key = generate_confirmation_key_for_time(identity_secret, tag, timestamp)?;
     
     Ok((confirmation_key, timestamp))
@@ -93,14 +93,14 @@ where
 /// ```
 /// use another_steam_totp::get_device_id;
 /// 
-/// let steamid: u64 = 76561197960287930;
+/// let steamid = 76561197960287930;
 /// let device_id = get_device_id(steamid);
 /// 
 /// assert_eq!(device_id, "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
 /// ```
 pub fn get_device_id(steamid: u64) -> String {
     let mut hasher = Sha1::new();
-
+    
     hasher.update(steamid.to_string().as_bytes());
     
     let result = hasher.finalize();
@@ -110,29 +110,25 @@ pub fn get_device_id(steamid: u64) -> String {
             let _ = write!(output, "{b:02x}");
             output
         });
-    // taken from https://crates.io/crates/steam-totp
-    let (one, rest) = hash.split_at(8);
-    let (two, rest) = rest.split_at(4);
-    let (three, rest) = rest.split_at(4);
-    let (four, rest) = rest.split_at(4);
-    let (five, _) = rest.split_at(12);
+    // sourced from https://github.com/saskenuba/SteamHelper-rs/blob/37d890c1491677415562d6e7440fde64bbeef12e/crates/steam-totp/src/lib.rs#L124
+    let (p1, rest) = hash.split_at(8);
+    let (p2, rest) = rest.split_at(4);
+    let (p3, rest) = rest.split_at(4);
+    let (p4, rest) = rest.split_at(4);
+    let (p5, _) = rest.split_at(12);
     
-    format!("android:{one}-{two}-{three}-{four}-{five}")
+    format!("android:{p1}-{p2}-{p3}-{p4}-{p5}")
 }
 
 /// Gets your computer's current system time as a Unix timestamp.
-fn current_timestamp() -> Result<i64, Error> {
-    let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-    // Safely convert the timestamp to i64.
-    let timestamp = i64::try_from(timestamp)?;
-    
-    Ok(timestamp)
+fn current_timestamp() -> Result<u64, Error> {
+    Ok(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
 }
 
 /// Generates an auth code for the given time.
 fn generate_auth_code_for_time<T>(
     shared_secret: T,
-    timestamp: i64,
+    timestamp: u64,
 ) -> Result<String, Error>
 where
     T: AsRef<[u8]>,
@@ -170,7 +166,7 @@ where
 fn generate_confirmation_key_for_time<T>(
     identity_secret: T,
     tag: Tag,
-    timestamp: i64,
+    timestamp: u64,
 ) -> Result<String, Error>
 where
     T: AsRef<[u8]>,
@@ -199,6 +195,27 @@ where
     
     mac.update(bytes);
     Ok(mac)
+}
+
+/// Subtracts a signed integer from an unsigned integer, saturating at bounds.
+fn subtract_unsigned_signed(u: u64, i: i64) -> u64 {
+    if i >= 0 {
+        u.saturating_sub(i as u64)
+    } else {
+        u.saturating_add((-i) as u64)
+    }
+}
+
+/// Gets the current timestamp adjusted by the provided time offset.
+fn get_offset_timestamp(time_offset: Option<i64>) -> Result<u64, Error> {
+    let current_timestamp = current_timestamp()?;
+    let time_offset = time_offset.unwrap_or(0);
+    let timestamp = subtract_unsigned_signed(
+        current_timestamp,
+        time_offset,
+    );
+    
+    Ok(timestamp)
 }
 
 /// Gets how many seconds we are **behind** Steam's servers.
@@ -241,7 +258,7 @@ pub async fn get_steam_server_time_offset() -> Result<i64, Error> {
         .await?;
     let json = response.json::<Response>().await?;
     let current_timestamp = current_timestamp()?;
-    let offset = json.response.server_time - current_timestamp;
+    let offset = json.response.server_time - current_timestamp as i64;
     
     Ok(offset)
 }

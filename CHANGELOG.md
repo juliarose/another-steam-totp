@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.5 (2025-07-06)
+
+### Changed
+- Added `Reqwest` to `Error` when `reqwest` feature is enabled.
+- Generating codes now allow for hex-encoded strings.
+
+### Removed
+- `RequestError` for `reqwest` feature.
+
 ## 0.3.5 (2024-12-25)
 
 ### Changed
