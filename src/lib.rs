@@ -152,8 +152,7 @@ where
         let slice: &[u8] = &result[slice_start as usize..slice_end as usize];
         let full_code_slice: [u8; 4] = slice.try_into()
             // This probably should never fail.
-            .map_err(|_e| std::io::Error::new(
-                std::io::ErrorKind::Other,
+            .map_err(|_e| std::io::Error::other(
                 "Failed to convert slice to array.",
             ))?;
         let full_code_bytes = u32::from_be_bytes(full_code_slice);
@@ -211,7 +210,7 @@ where
         bytes.push(byte);
     }
     
-    return Ok(bytes);
+    Ok(bytes)
 }
 
 /// Decodes a secret from either base64 or hex encoding.
