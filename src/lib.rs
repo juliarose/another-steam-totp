@@ -39,7 +39,7 @@ type HmacSha1 = Hmac<Sha1>;
 /// use another_steam_totp::generate_auth_code;
 /// 
 /// let shared_secret = "000000000000000000000000000=";
-/// let code = generate_auth_code(shared_secret, 0).unwrap();
+/// let code = generate_auth_code(shared_secret, None).unwrap();
 /// 
 /// assert_eq!(code.len(), 5);
 /// ```
@@ -71,7 +71,7 @@ where
 /// use another_steam_totp::{generate_confirmation_key, Tag};
 /// 
 /// let identity_secret = "000000000000000000000000000=";
-/// let (code, timestamp) = generate_confirmation_key(identity_secret, Tag::Allow, 0).unwrap();
+/// let (code, timestamp) = generate_confirmation_key(identity_secret, Tag::Allow, None).unwrap();
 /// ```
 pub fn generate_confirmation_key<T>(
     identity_secret: T,
