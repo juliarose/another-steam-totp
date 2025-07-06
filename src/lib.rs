@@ -69,13 +69,7 @@ where
 /// use another_steam_totp::{generate_confirmation_key, Tag};
 /// 
 /// let identity_secret = "000000000000000000000000000=";
-/// let (code, timestamp) = generate_confirmation_key(
-///     identity_secret,
-///     Tag::Allow,
-///     0, // No offset
-/// ).unwrap();
-/// 
-/// // pass these to the request parameters ..
+/// let (code, timestamp) = generate_confirmation_key(identity_secret, Tag::Allow, 0).unwrap();
 /// ```
 pub fn generate_confirmation_key<T>(
     identity_secret: T,
@@ -298,11 +292,12 @@ mod tests {
     
     #[test]
     fn generates_confirmation_key_for_time() {
-        let identity_secret = "000000000000000000000000000=";
+        let identity_secret: &'static str = "000000000000000000000000000=";
+        let timestamp = 1634603498;
         let hash = generate_confirmation_key_for_time(
             identity_secret,
             Tag::Allow,
-            1634603498 as i64,
+            timestamp,
         ).unwrap();
         
         assert_eq!(hash, "9/OyNC3rk7VNsMFklzayOuznImU=");
@@ -311,8 +306,8 @@ mod tests {
     #[test]
     fn generating_a_code_works() {
         let shared_secret = "000000000000000000000000000=";
-        let time: i64 = 1634603498;
-        let code = generate_auth_code_for_time(shared_secret, time).unwrap();
+        let timestamp = 1634603498;
+        let code = generate_auth_code_for_time(shared_secret, timestamp).unwrap();
         
         assert_eq!(code, "2C5H2");
     }
@@ -321,8 +316,8 @@ mod tests {
     fn generating_a_code_from_hex_works() {
         // This is the same as `000000000000000000000000000=` (base64)
         let shared_secret = "D34D34D34D34D34D34D34D34D34D34D34D34D34D";
-        let time: i64 = 1634603498;
-        let code = generate_auth_code_for_time(shared_secret, time).unwrap();
+        let timestamp = 1634603498;
+        let code = generate_auth_code_for_time(shared_secret, timestamp).unwrap();
 
         assert_eq!(code, "2C5H2");
     }
