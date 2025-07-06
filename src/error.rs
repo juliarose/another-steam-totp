@@ -14,9 +14,13 @@ pub enum Error {
     EmptySecret,
     /// System time is set to before the Unix epoch.
     SystemTime(SystemTimeError),
-    /// An error occurred when reading/writing bytes. This should reasonably never happen, but if 
-    /// it does it will be returned here.
+    /// An error occurred when converting an integer.
+    TryFromInt(std::num::TryFromIntError),
+    /// An error occurred when reading/writing bytes. 
     IO(std::io::Error),
+    /// An error occurred when making a request.
+    #[cfg(feature = "reqwest")]
+    Reqwest(reqwest::Error),
 }
 
 impl std::error::Error for Error {}
@@ -39,6 +43,19 @@ impl From<base64::DecodeError> for Error {
     }
 }
 
+impl From<std::num::TryFromIntError> for Error {
+    fn from(e: std::num::TryFromIntError) -> Self {
+        Self::TryFromInt(e)
+    }
+}
+
+#[cfg(feature = "reqwest")]
+impl From<reqwest::Error> for Error {
+    fn from(e: reqwest::Error) -> Self {
+        Self::Reqwest(e)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -46,42 +63,10 @@ impl fmt::Display for Error {
             Self::InvalidHexSecret => write!(f, "The secret is not a valid hex string."),
             Self::EmptySecret => write!(f, "The secret is empty."),
             Self::SystemTime(e) => write!(f, "SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", e),
+            Self::TryFromInt(e) => write!(f, "Error converting integer: {}", e),
             Self::IO(e) => write!(f, "IO error: {}", e),
-        }
-    }
-}
-
-/// An error occurred during the request.
-#[cfg(feature = "reqwest")]
-#[cfg_attr(docsrs, doc(cfg(feature = "reqwest")))]
-#[derive(Debug)]
-pub enum RequestError {
-    /// A request error occured (either network or deserialization).
-    Reqwest(reqwest::Error),
-    /// An error occurred when reading your computer's system time.
-    SystemTime(SystemTimeError),
-}
-
-#[cfg(feature = "reqwest")]
-impl From<reqwest::Error> for RequestError {
-    fn from(e: reqwest::Error) -> Self {
-        Self::Reqwest(e)
-    }
-}
-
-#[cfg(feature = "reqwest")]
-impl From<SystemTimeError> for RequestError {
-    fn from(e: SystemTimeError) -> Self {
-        Self::SystemTime(e)
-    }
-}
-
-#[cfg(feature = "reqwest")]
-impl fmt::Display for RequestError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
+            #[cfg(feature = "reqwest")]
             Self::Reqwest(e) => write!(f, "Reqwest error: {}", e),
-            Self::SystemTime(e) => write!(f, "SystemTimeError: {}. System time is set to before the Unix epoch. To fix this, adjust your clock.", e),
         }
     }
 }
