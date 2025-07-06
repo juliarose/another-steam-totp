@@ -31,8 +31,8 @@ type HmacSha1 = Hmac<Sha1>;
 /// hex-encoded `shared_secret`.
 /// 
 /// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers.
-/// In most cases, you can use no offset (0) without issue. Refer to
-/// [`get_steam_server_time_offset`] for more details.
+/// Defaults to `0` if `None` is provided. Refer to [`get_steam_server_time_offset`] for more
+/// details.
 /// 
 /// # Examples
 /// ```
@@ -45,12 +45,12 @@ type HmacSha1 = Hmac<Sha1>;
 /// ```
 pub fn generate_auth_code<T>(
     shared_secret: T,
-    time_offset: i64,
+    time_offset: Option<i64>,
 ) -> Result<String, Error>
 where
     T: AsRef<[u8]>,
 {
-    let timestamp = current_timestamp()? + time_offset;
+    let timestamp = current_timestamp()? + time_offset.unwrap_or(0);
     
     generate_auth_code_for_time(shared_secret, timestamp)
 }
@@ -59,8 +59,8 @@ where
 /// or hex-encoded `identity_secret`.
 /// 
 /// The `time_offset` is the number of seconds in which your system is **behind** Steam's servers.
-/// In most cases, you can use no offset (0) without issue. Refer to
-/// [`get_steam_server_time_offset`] for more details.
+/// Defaults to `0` if `None` is provided. Refer to [`get_steam_server_time_offset`] for more
+/// details.
 /// 
 /// Returns both the confirmation key and the timestamp used to generate the confirmation key,
 /// these are required parameters when sending the request for
@@ -76,12 +76,12 @@ where
 pub fn generate_confirmation_key<T>(
     identity_secret: T,
     tag: Tag,
-    time_offset: i64,
+    time_offset: Option<i64>,
 ) -> Result<(String, i64), Error>
 where
     T: AsRef<[u8]>,
 {
-    let timestamp = current_timestamp()? + time_offset;
+    let timestamp = current_timestamp()? + time_offset.unwrap_or(0);
     let confirmation_key = generate_confirmation_key_for_time(identity_secret, tag, timestamp)?;
     
     Ok((confirmation_key, timestamp))
