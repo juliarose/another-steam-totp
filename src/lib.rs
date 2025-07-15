@@ -5,6 +5,17 @@
 //! Enable the `reqwest` feature to enable the `get_steam_server_time_offset` function. If you
 //! need a synchronous version, enable the `ureq` feature to enable the
 //! `get_steam_server_time_offset_sync` function.
+//! 
+//! Usage:
+//! ```
+//! use another_steam_totp::generate_auth_code;
+//! 
+//! let shared_secret = "000000000000000000000000000=";
+//! let time_offset = None;
+//! // Generates the 5-character time-based one-time password 
+//! // using your shared_secret.
+//! let code = generate_auth_code(shared_secret, time_offset).unwrap();
+//! ```
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
