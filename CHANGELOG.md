@@ -1,10 +1,16 @@
 # Changelog
 
-## 0.3.5 (2025-07-06)
+## 0.4.0 (2025-07-06)
+
+### Added
+- Added `get_device_id_with_salt` method.
+- Added `get_steam_server_time_offset_sync` method for synchronous time offset retrieval. Enable the `ureq` feature to use this method.
 
 ### Changed
-- Added `Reqwest` to `Error` when `reqwest` feature is enabled.
-- Generating codes now allow for hex-encoded strings.
+- Generating codes now allows for hex-encoded strings.
+- Added `Reqwest` variant to `Error` for `reqwest` feature.
+- Added `Ureq` variant to `Error` for `ureq` feature.
+- `generate_confirmation_key` now returns a `u64` timestamp instead of `i64`.
 
 ### Removed
 - `RequestError` for `reqwest` feature.

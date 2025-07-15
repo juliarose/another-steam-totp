@@ -1,4 +1,4 @@
-//! Helper methods for decoding secrets from base64 and hex.
+//! Helper methods for decoding secrets into the required format.
 
 use crate::Error;
 use base64::Engine;
@@ -14,10 +14,7 @@ fn hex_value(byte: u8) -> Option<u8> {
 }
 
 /// Decodes a hex-encoded secret.
-fn decode_hex<T>(secret: T) -> Option<Vec<u8>>
-where
-    T: AsRef<[u8]>,
-{
+fn decode_hex<T: AsRef<[u8]>>(secret: T) -> Option<Vec<u8>> {
     let secret = secret.as_ref();
     let len = secret.len();
     
@@ -41,10 +38,7 @@ where
 }
 
 /// Decodes a secret from either base64 or hex encoding.
-pub fn decode_secret<T>(secret: T) -> Result<Vec<u8>, Error>
-where
-    T: AsRef<[u8]>,
-{
+pub fn decode_secret<T: AsRef<[u8]>>(secret: T) -> Result<Vec<u8>, Error> {
     // Attempt to decode the secret as hex if it is hex-encoded. This should fail if the secret is
     // base64-encoded.
     let decoded = if let Some(decoded) = decode_hex(&secret) {

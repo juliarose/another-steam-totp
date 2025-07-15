@@ -14,9 +14,12 @@ pub enum Error {
     SystemTime(SystemTimeError),
     /// An error occurred when reading/writing bytes. 
     IO(std::io::Error),
-    /// An error occurred when making a request.
     #[cfg(feature = "reqwest")]
+    /// An error occurred when making a request.
     Reqwest(reqwest::Error),
+    #[cfg(feature = "ureq")]
+    /// An error occurred when making a request.
+    Ureq(ureq::Error),
 }
 
 impl fmt::Display for Error {
@@ -28,6 +31,8 @@ impl fmt::Display for Error {
             Self::IO(e) => write!(f, "IO error: {}", e),
             #[cfg(feature = "reqwest")]
             Self::Reqwest(e) => write!(f, "Reqwest error: {}", e),
+            #[cfg(feature = "ureq")]
+            Self::Ureq(e) => write!(f, "Isahc error: {}", e),
         }
     }
 }
@@ -56,5 +61,12 @@ impl From<base64::DecodeError> for Error {
 impl From<reqwest::Error> for Error {
     fn from(e: reqwest::Error) -> Self {
         Self::Reqwest(e)
+    }
+}
+
+#[cfg(feature = "ureq")]
+impl From<ureq::Error> for Error {
+    fn from(e: ureq::Error) -> Self {
+        Self::Ureq(e)
     }
 }

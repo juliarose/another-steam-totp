@@ -16,6 +16,7 @@ base64 = "^0.22"
 sha-1 = "0.10.0"
 hmac = "^0.12"
 reqwest = { version = "^0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
+ureq = { version = "^3.0", features = ["json"], optional = true }
 serde = { version = "^1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
@@ -23,10 +24,15 @@ tokio = { version = "1", features = ["full"] }
 
 [features]
 reqwest = ["dep:reqwest", "dep:serde"]
+ureq = ["dep:ureq", "dep:serde"]
 
 [[example]]
 name = "get_steam_server_time_offset"
 required-features = ["reqwest"]
+
+[[example]]
+name = "get_steam_server_time_offset_sync"
+required-features = ["ureq"]
 
 [package.metadata.docs.rs]
 all-features = true
