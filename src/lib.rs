@@ -26,14 +26,14 @@ mod decode;
 #[cfg(any(feature = "reqwest", feature = "ureq"))]
 mod http;
 
+pub use error::Error;
+pub use tag::Tag;
+
 #[cfg(feature = "reqwest")]
 pub use http::get_steam_server_time_offset;
 
 #[cfg(feature = "ureq")]
 pub use http::get_steam_server_time_offset_sync;
-
-pub use error::Error;
-pub use tag::Tag;
 
 use decode::decode_secret;
 use std::time::{SystemTime, UNIX_EPOCH};

@@ -1,3 +1,6 @@
+//! Functions for getting the current time offset from Steam's servers by using the
+//! `https://api.steampowered.com/ITwoFactorService/QueryTime/v1/` endpoint.
+
 use std::str::FromStr;
 use serde::{de, Deserialize, Deserializer};
 use crate::Error;
