@@ -31,7 +31,8 @@ struct Response {
 /// Time-based one-time passwords (TOTPs) rely on the current timestamp to generate codes.
 /// If your system time is inaccurate, use this function to determine the difference (offset)
 /// between your system time and Steam's server time. You can then apply this offset to
-/// [`generate_auth_code`] or [`generate_confirmation_key`].
+/// [`generate_auth_code`](crate::generate_auth_code) or
+/// [`generate_confirmation_key`](crate::generate_confirmation_key).
 /// 
 /// In most cases, your system time should be close enough that you do not need to use an offset.
 /// 
@@ -64,7 +65,8 @@ pub async fn get_steam_server_time_offset() -> Result<i64, Error> {
 /// Time-based one-time passwords (TOTPs) rely on the current timestamp to generate codes.
 /// If your system time is inaccurate, use this function to determine the difference (offset)
 /// between your system time and Steam's server time. You can then apply this offset to
-/// [`generate_auth_code`] or [`generate_confirmation_key`].
+/// [`generate_auth_code`](crate::generate_auth_code) or
+/// [`generate_confirmation_key`](crate::generate_confirmation_key).
 /// 
 /// In most cases, your system time should be close enough that you do not need to use an offset.
 /// 
@@ -91,6 +93,7 @@ pub fn get_steam_server_time_offset_sync() -> Result<i64, Error> {
     get_offset_from_response(&json)
 }
 
+/// Extracts the time offset from the response body.
 fn get_offset_from_response(response: &Response) -> Result<i64, Error> {
     let current_timestamp = current_timestamp()?;
     let offset = response.response.server_time - current_timestamp as i64;

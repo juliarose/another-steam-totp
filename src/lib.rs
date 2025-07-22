@@ -2,10 +2,6 @@
 //! <https://github.com/DoctorMcKay/node-steam-totp>. Designed to be easy-to-use while providing
 //! all necessary features.
 //! 
-//! Enable the `reqwest` feature to enable the `get_steam_server_time_offset` function. If you
-//! need a synchronous version, enable the `ureq` feature to enable the
-//! `get_steam_server_time_offset_sync` function.
-//! 
 //! Usage:
 //! ```
 //! use another_steam_totp::generate_auth_code;
@@ -107,7 +103,7 @@ pub fn generate_confirmation_key<T: AsRef<[u8]>>(
 /// ```
 /// use another_steam_totp::get_device_id;
 /// 
-/// let steamid = 76561197960287930;
+/// let steamid: u64 = 76561197960287930;
 /// let device_id = get_device_id(steamid);
 /// 
 /// assert_eq!(device_id, "android:6d3f10d9-6369-a1ae-97a0-94df28b95192");
@@ -122,7 +118,7 @@ pub fn get_device_id(steamid: u64) -> String {
 /// ```
 /// use another_steam_totp::get_device_id_with_salt;
 /// 
-/// let steamid = 76561197960287930;
+/// let steamid: u64 = 76561197960287930;
 /// let device_id = get_device_id_with_salt(steamid, "my_salt");
 /// 
 /// assert_eq!(device_id, "android:bf5ccd6c-3baf-53a8-b21d-7c2d8bb1e9bb");

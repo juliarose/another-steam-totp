@@ -14,11 +14,11 @@ pub enum Error {
     SystemTime(SystemTimeError),
     /// An error occurred when reading/writing bytes. 
     IO(std::io::Error),
+    /// An error occurred when making a request.
     #[cfg(feature = "reqwest")]
-    /// An error occurred when making a request.
     Reqwest(reqwest::Error),
-    #[cfg(feature = "ureq")]
     /// An error occurred when making a request.
+    #[cfg(feature = "ureq")]
     Ureq(ureq::Error),
 }
 

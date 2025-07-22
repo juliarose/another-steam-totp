@@ -3,7 +3,7 @@
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd)]
-/// The tag used in [`generate_confirmation_key`].
+/// The tag used in [`generate_confirmation_key`](crate::generate_confirmation_key).
 pub enum Tag {
     /// To load the confirmations page.
     Conf,
