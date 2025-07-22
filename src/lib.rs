@@ -11,6 +11,8 @@
 //! // Generates the 5-character time-based one-time password 
 //! // using your shared_secret.
 //! let code = generate_auth_code(shared_secret, time_offset).unwrap();
+//! 
+//! assert_eq!(code.len(), 5);
 //! ```
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -134,7 +136,7 @@ fn generate_device_id(steamid: u64, salt: Option<&str>) -> String {
     if let Some(salt) = salt {
         hasher.update(format!("{steamid}{salt}"));
     } else {
-        hasher.update(steamid.to_string().as_bytes());
+        hasher.update(steamid.to_string());
     }
     
     let result = hasher.finalize();

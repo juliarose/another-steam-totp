@@ -10,6 +10,8 @@ let time_offset = None;
 // Generates the 5-character time-based one-time password 
 // using your shared_secret.
 let code = generate_auth_code(shared_secret, time_offset).unwrap();
+
+assert_eq!(code.len(), 5);
 ```
 
 ## License

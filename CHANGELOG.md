@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.4.0 (2025-07-06)
+## 0.4.1 (2025-07-22)
+
+### Fixed
+- Documentation links.
+
+## 0.4.0 (2025-07-18)
 
 ### Added
 - Added `get_device_id_with_salt` method.
