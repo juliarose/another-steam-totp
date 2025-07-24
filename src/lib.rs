@@ -2,7 +2,7 @@
 //! <https://github.com/DoctorMcKay/node-steam-totp>. Designed to be easy-to-use while providing
 //! all necessary features.
 //! 
-//! Usage:
+//! # Usage
 //! ```
 //! use another_steam_totp::generate_auth_code;
 //! 
@@ -175,7 +175,8 @@ fn generate_auth_code_for_time<T: AsRef<[u8]>>(
         let slice: &[u8] = &result[slice_start as usize..slice_end as usize];
         let full_code_slice: [u8; 4] = slice.try_into()
             // This probably should never fail.
-            .map_err(|_e| std::io::Error::other(
+            .map_err(|_e| std::io::Error::new(
+                std::io::ErrorKind::Other,
                 "Failed to convert slice to array.",
             ))?;
         let full_code_bytes = u32::from_be_bytes(full_code_slice);

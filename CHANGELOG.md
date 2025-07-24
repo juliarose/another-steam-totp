@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2 (2025-07-24)
+
+### Changed
+- Updated `Cargo.toml` to set the minimum supported Rust version (MSRV) to `1.60.0` for better compatibility.
+
 ## 0.4.1 (2025-07-22)
 
 ### Fixed
